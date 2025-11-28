@@ -1,19 +1,22 @@
-export type UserRole = {
+type UserRole = {
     domains: string[] | undefined | null,
     role: string,
     prefix: string | undefined | null
 }
 
-export type Bindings = {
+type Bindings = {
     // bindings
     DB: D1Database
     KV: KVNamespace
     RATE_LIMITER: any
     SEND_MAIL: any
+    ASSETS: Fetcher
 
     // config
+    DEFAULT_LANG: string | undefined
     TITLE: string | undefined
     ANNOUNCEMENT: string | undefined | null
+    ALWAYS_SHOW_ANNOUNCEMENT: string | boolean | undefined
     PREFIX: string | undefined
     ADDRESS_CHECK_REGEX: string | undefined
     ADDRESS_REGEX: string | undefined
@@ -21,6 +24,8 @@ export type Bindings = {
     MAX_ADDRESS_LEN: string | number | undefined
     DEFAULT_DOMAINS: string | string[] | undefined
     DOMAINS: string | string[] | undefined
+    DISABLE_CUSTOM_ADDRESS_NAME: string | boolean | undefined
+    CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST: string | boolean | undefined
     ADMIN_USER_ROLE: string | undefined
     USER_DEFAULT_ROLE: string | UserRole | undefined
     USER_ROLES: string | UserRole[] | undefined
@@ -33,7 +38,9 @@ export type Bindings = {
     ENABLE_AUTO_REPLY: string | boolean | undefined
     ENABLE_WEBHOOK: string | boolean | undefined
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
+    DISABLE_ANONYMOUS_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
+    ENABLE_ADDRESS_PASSWORD: string | boolean | undefined
     ENABLE_INDEX_ABOUT: string | boolean | undefined
     DEFAULT_SEND_BALANCE: number | string | undefined
     NO_LIMIT_SEND_ROLE: string | undefined | null
@@ -41,6 +48,18 @@ export type Bindings = {
     COPYRIGHT: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
+
+    ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
+    JUNK_MAIL_CHECK_LIST: string | string[] | undefined
+    JUNK_MAIL_FORCE_PASS_LIST: string | string[] | undefined
+
+    ENABLE_ANOTHER_WORKER: string | boolean | undefined
+    ANOTHER_WORKER_LIST: string | AnotherWorker[] | undefined
+
+    SUBDOMAIN_FORWARD_ADDRESS_LIST: string | SubdomainForwardAddressList[] | undefined
+
+    REMOVE_ALL_ATTACHMENT: string | boolean | undefined
+    REMOVE_EXCEED_SIZE_ATTACHMENT: string | boolean | undefined
 
     // s3 config
     S3_ENDPOINT: string | undefined
@@ -55,7 +74,10 @@ export type Bindings = {
 
     // resend
     RESEND_TOKEN: string | undefined
-    [key: `RESEND_TOKEN_${string}`]: string | undefined;
+    [key: `RESEND_TOKEN_${string}`]: string | undefined
+
+    // SMTP config
+    SMTP_CONFIG: string | object | undefined
 
     // telegram config
     TELEGRAM_BOT_TOKEN: string
@@ -82,9 +104,39 @@ type Variables = {
     userPayload: UserPayload,
     userRolePayload: string | undefined | null,
     jwtPayload: JwtPayload,
+    lang: string | undefined | null
 }
 
 type HonoCustomType = {
     "Bindings": Bindings;
     "Variables": Variables;
+}
+
+type AnotherWorker = {
+    binding: string | undefined | null,
+    method: string | undefined | null,
+    keywords: string[] | undefined | null
+}
+
+type RPCEmailMessage = {
+    from: string | undefined | null,
+    to: string | undefined | null,
+    rawEmail: string | undefined | null,
+    headers: object | undefined | null,
+}
+
+type ParsedEmailContext = {
+    rawEmail: string,
+    parsedEmail?: {
+        sender: string,
+        subject: string,
+        text: string,
+        html: string,
+        headers?: Record<string, string>[]
+    } | undefined
+}
+
+type SubdomainForwardAddressList = {
+    domains: string[] | undefined | null,
+    forward: string,
 }

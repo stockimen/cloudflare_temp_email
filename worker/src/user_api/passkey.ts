@@ -7,7 +7,6 @@ import {
     verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 
-import { HonoCustomType } from '../types';
 import { Passkey } from '../models';
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
@@ -193,7 +192,7 @@ export default {
         const jwt = await Jwt.sign({
             user_email: user_email,
             user_id: user_id,
-            // 30 days expire in seconds
+            // 90 days expire in seconds
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             iat: Math.floor(Date.now() / 1000),
         }, c.env.JWT_SECRET, "HS256")

@@ -14,21 +14,30 @@ import AccountSettings from './admin/AccountSettings.vue';
 import UserManagement from './admin/UserManagement.vue';
 import UserSettings from './admin/UserSettings.vue';
 import UserOauth2Settings from './admin/UserOauth2Settings.vue';
+import RoleAddressConfig from './admin/RoleAddressConfig.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
+import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
 import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
+import IpBlacklistSettings from './admin/IpBlacklistSettings.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
   globalTabplacement, showAdminPage, userSettings
 } = useGlobalState()
 const message = useMessage()
+
+const SendMail = defineAsyncComponent(() => {
+  loading.value = true;
+  return import('./admin/SendMail.vue')
+    .finally(() => loading.value = false);
+});
 
 const authFunc = async () => {
   try {
@@ -45,6 +54,7 @@ const { t } = useI18n({
       accessHeader: 'Admin Password',
       accessTip: 'Please enter the admin password',
       mails: 'Emails',
+      sendMail: 'Send Mail',
       qucickSetup: 'Quick Setup',
       account: 'Account',
       account_create: 'Create Account',
@@ -53,6 +63,7 @@ const { t } = useI18n({
       user_management: 'User Management',
       user_settings: 'User Settings',
       userOauth2Settings: 'Oauth2 Settings',
+      roleAddressConfig: 'Role Address Config',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
@@ -60,7 +71,9 @@ const { t } = useI18n({
       webhookSettings: 'Webhook Settings',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
+      database: 'Database',
       workerconfig: 'Worker Config',
+      ipBlacklistSettings: 'IP Blacklist',
       appearance: 'Appearance',
       about: 'About',
       ok: 'OK',
@@ -70,6 +83,7 @@ const { t } = useI18n({
       accessHeader: 'Admin 密码',
       accessTip: '请输入 Admin 密码',
       mails: '邮件',
+      sendMail: '发送邮件',
       qucickSetup: '快速设置',
       account: '账号',
       account_create: '创建账号',
@@ -78,6 +92,7 @@ const { t } = useI18n({
       user_management: '用户管理',
       user_settings: '用户设置',
       userOauth2Settings: 'Oauth2 设置',
+      roleAddressConfig: '角色地址配置',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
@@ -85,7 +100,9 @@ const { t } = useI18n({
       webhookSettings: 'Webhook 设置',
       statistics: '统计',
       maintenance: '维护',
+      database: '数据库',
       workerconfig: 'Worker 配置',
+      ipBlacklistSettings: 'IP 黑名单',
       appearance: '外观',
       about: '关于',
       ok: '确定',
@@ -104,7 +121,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div v-if="userSettings.fetched">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -118,6 +135,9 @@ onMounted(async () => {
     <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
         <n-tabs type="bar" justify-content="center" animated>
+          <n-tab-pane name="database" :tab="t('database')">
+            <DatabaseManager />
+          </n-tab-pane>
           <n-tab-pane name="account_settings" :tab="t('account_settings')">
             <AccountSettings />
           </n-tab-pane>
@@ -143,6 +163,9 @@ onMounted(async () => {
           <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
             <SenderAccess />
           </n-tab-pane>
+          <n-tab-pane name="ipBlacklistSettings" :tab="t('ipBlacklistSettings')">
+            <IpBlacklistSettings />
+          </n-tab-pane>
           <n-tab-pane name="webhook" :tab="t('webhookSettings')">
             <Webhook />
           </n-tab-pane>
@@ -159,6 +182,9 @@ onMounted(async () => {
           <n-tab-pane name="userOauth2Settings" :tab="t('userOauth2Settings')">
             <UserOauth2Settings />
           </n-tab-pane>
+          <n-tab-pane name="roleAddressConfig" :tab="t('roleAddressConfig')">
+            <RoleAddressConfig />
+          </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
@@ -171,6 +197,9 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="sendBox" :tab="t('sendBox')">
             <SendBox />
+          </n-tab-pane>
+          <n-tab-pane name="sendMail" :tab="t('sendMail')">
+            <SendMail />
           </n-tab-pane>
           <n-tab-pane name="mailWebhook" :tab="t('mailWebhook')">
             <MailWebhook />
@@ -185,6 +214,9 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
         <n-tabs type="bar" justify-content="center" animated>
+          <n-tab-pane name="database" :tab="t('database')">
+            <DatabaseManager />
+          </n-tab-pane>
           <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
             <WorkerConfig />
           </n-tab-pane>

@@ -1,9 +1,153 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.7.6)
+## v1.1.0(main)
+
+- feat: |Admin| 维护页面增加清理 n 天前空邮件的邮箱地址功能
+- fix: 修复自定义认证密码功能异常的问题 (前端属性名错误 & /open_api 接口被拦截)
+
+## v1.0.7
+
+- feat: |Admin| 新增 IP 黑名单功能，用于限制访问频率较高的 API
+- feat: |Admin| 新增 ASN 组织黑名单功能，支持基于 ASN 组织名称过滤请求（支持文本匹配和正则表达式）
+- feat: |Admin| 新增浏览器指纹黑名单功能，支持基于浏览器指纹过滤请求（支持精确匹配和正则表达式）
+
+## v1.0.6
+
+- feat: |DB| update db schema add index
+- feat: |地址密码| 增加地址密码登录功能, 通过 `ENABLE_ADDRESS_PASSWORD` 配置启用, 需要执行 `db/2025-09-23-patch.sql` 文件中的 SQL 更新 `D1` 数据库
+- fix: |GitHub Actions| 修复 debug 模式配置，仅当 DEBUG_MODE 为 'true' 时才启用调试模式
+- feat: |Admin| 账户管理页面新增多选批量操作功能（批量删除、批量清空收件箱、批量清空发件箱）
+- feat: |Admin| 维护页面增加清理未绑定用户地址的功能
+- feat: 支持针对角色配置不同的绑定地址数量上限, 可在 admin 页面配置
+
+## v1.0.5
+
+- feat: 新增 `DISABLE_CUSTOM_ADDRESS_NAME` 配置: 禁用自定义邮箱地址名称功能
+- feat: 新增 `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` 配置: 创建地址时优先使用第一个域名
+- feat: |UI| 主页增加进入极简模式按钮
+- feat: |Webhook| 增加白名单开关功能，支持灵活控制访问权限
+
+## v1.0.4
+
+- feat: |UI| 优化极简模式主页, 增加全部邮件页面功能(删除/下载/附件/...), 可在 `外观` 中切换
+- feat: admin 账号设置页面增加 `邮件转发规则` 配置
+- feat: admin 账号设置页面增加 `禁止接收未知地址邮件` 配置
+- feat: 邮件页面增加 上一封/下一封 按钮
+
+## v1.0.3
+
+- fix: 修复 github actions 部署问题
+- feat: telegram /new 不指定域名时, 使用随机地址
+
+## v1.0.2
+
+- fix: 修复 oauth2 登录失败的问题
+
+## v1.0.1
+
+- feat: |UI| 增加极简模式主页, 可在 `外观` 中切换
+- fix: 修复 oauth2 登录时，default role 不生效的问题
+
+## v1.0.0
+
+- fix: |UI| 修复 User 查看收件箱，不选择地址时，关键词查询不生效
+- fix: 修复自动清理任务，时间为 0 时不生效的问题
+- feat: 清理功能增加 创建 n 天前地址清理，n 天前未活跃地址清理
+- fix: |IMAP Proxy| 修复 IMAP Proxy 服务器，无法查看新邮件的问题
+
+## v0.10.0
+
+- feat: 支持 User 查看收件箱，`/user_api/mails` 接口, 支持 `address` 和 `keyword` 过滤
+- fix: 修复 Oauth2 登录获取 Token 时，一些 Oauth2 需要 `redirect_uri` 参数的问题
+- feat: 用户访问网页时，如果 `user token` 在 7 天内过期，自动刷新
+- feat: admin portal 中增加初始化 db 的功能
+- feat: 增加 `ALWAYS_SHOW_ANNOUNCEMENT` 变量，用于配置是否总是显示公告
+
+## v0.9.1
+
+- feat: |UI| support google ads
+- feat: |UI| 使用 shadow DOM 防止样式污染
+- feat: |UI| 支持 URL jwt 参数自动登录邮箱，jwt 参数会覆盖浏览器中的 jwt
+- fix: |CleanUP| 修复清理邮件时，清理时间超过 30 天报错的 bug
+- feat: admin 用户管理页面: 增加 用户地址查看功能
+- feat: | S3 附件| 增加 S3 附件删除功能
+- feat: | Admin API| 增加 admin 绑定用户和地址的 api
+- feat: | Oauth2 | Oatuh2 获取用户信息时，支持 `JSONPATH` 表达式
+
+## v0.9.0
+
+- feat: | Worker | 支持多语言
+- feat: | Worker | `NO_LIMIT_SEND_ROLE` 配置支持多角色, 逗号分割
+- feat: | Actions | build 里增加 `worker-with-wasm-mail-parser.zip` 支持 UI 部署带 `wasm` 的 worker
+
+## v0.8.7
+
+- fix: |UI| 修复移动设备日期显示问题
+- feat: |Worker| 支持通过 `SMTP` 发送邮件, 使用 [zou-yu/worker-mailer](https://github.com/zou-yu/worker-mailer/blob/main/README_zh-CN.md)
+
+## v0.8.6
+
+- feat: |UI| 公告支持 html 格式
+- feat: |UI| `COPYRIGHT` 支持 html 格式
+- feat: |Doc| 优化部署文档，补充了 `Github Actions 部署文档`，增加了 `Worker 变量说明`
+
+## v0.8.5
+
+- feat: |mail-parser-wasm-worker| 修复 `initSync` 函数调用时的 `deprecated` 参数警告
+- feat: rpc headers covert & typo (#559)
+- fix: telegram mail page use iframe show email (#561)
+- feat: |Worker| 增加 `REMOVE_ALL_ATTACHMENT` 和 `REMOVE_EXCEED_SIZE_ATTACHMENT` 用于移除邮件附件，由于是解析邮件的一些信息会丢失，比如图片等.
+
+## v0.8.4
+
+- fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
+- feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令
+- feat: 增加 worker 配置 `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` 禁用匿名用户创建邮箱地址，只允许登录用户创建邮箱地址
+- feat: 增加 worker 配置 `ENABLE_ANOTHER_WORKER` 及 `ANOTHER_WORKER_LIST` ，用于调用其他 worker 的 rpc 接口 (#547)
+- feat: |UI| 自动刷新配置保存到浏览器，可配置刷新间隔
+- feat: 垃圾邮件检测增加存在时才检查的列表 `JUNK_MAIL_CHECK_LIST` 配置
+- feat: | Worker | 增加 `ParsedEmailContext` 类用于缓存解析后的邮件内容，减少解析次数
+- feat: |Github Action| Worker 部署增加 `DEBUG_MODE` 输出日志, `BACKEND_USE_MAIL_WASM_PARSER` 配置是否使用 wasm 解析邮件
+
+## v0.8.3
+
+- feat: |Github Action| 增加自动更新并部署功能
+- feat: |UI| admin 用户设置，支持 oauth2 配置的删除
+- feat: 增加垃圾邮件检测必须通过的列表 `JUNK_MAIL_FORCE_PASS_LIST` 配置
+
+## v0.8.2
+
+- fix: |Doc| 修复文档中的一些错误
+- fix: |Github Action| 修复 frontend 部署分支错误的问题
+- feat: admin 发送邮件功能
+- feat: admin 后台，账号配置页面添加无限发送邮件的地址列表
+
+## v0.8.1
+
+- feat: |Doc| 更新 UI 安装的文档
+- feat: |UI| 对用户隐藏邮箱账号的 ID
+- feat: |UI| 增加邮件详情页的 `转发` 按钮
+
+## v0.8.0
+
+- feat: |UI| 随机生成地址时不超过最大长度
+- feat: |UI| 邮件时间显示浏览器时区，可在设置中切换显示为 UTC 时间
+- feat: 支持转移邮件到其他用户
+
+## v0.7.6
+
+### Breaking Changes
+
+UI 部署 worker 需要点击 Settings -> Runtime, 修改 Compatibility flags, 增加 `nodejs_compat`
+
+![worker-runtime](vitepress-docs/docs/public/ui_install/worker-runtime.png)
+
+### Changes
 
 - feat: 支持提前设置 bot info, 降低 telegram 回调延迟 (#441)
+- feat: 增加 telegram mini app 的 build 压缩包
+- feat: 增加是否启用垃圾邮件检查 `ENABLE_CHECK_JUNK_MAIL` 配置
 
 ## v0.7.5
 

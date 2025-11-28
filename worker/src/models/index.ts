@@ -14,9 +14,11 @@ export type Passkey = {
 };
 
 export class AdminWebhookSettings {
+    enableAllowList: boolean;
     allowList: string[];
 
-    constructor(allowList: string[]) {
+    constructor(enableAllowList: boolean, allowList: string[]) {
+        this.enableAllowList = enableAllowList;
         this.allowList = allowList;
     }
 }
@@ -32,7 +34,7 @@ export type WebhookMail = {
     parsedHtml: string;
 }
 
-export class CleanupSettings {
+export type CleanupSettings = {
 
     enableMailsAutoCleanup: boolean | undefined;
     cleanMailsDays: number;
@@ -40,22 +42,15 @@ export class CleanupSettings {
     cleanUnknowMailsDays: number;
     enableSendBoxAutoCleanup: boolean | undefined;
     cleanSendBoxDays: number;
-
-    constructor(data: CleanupSettings | undefined | null) {
-        const {
-            enableMailsAutoCleanup, cleanMailsDays,
-            enableUnknowMailsAutoCleanup, cleanUnknowMailsDays,
-            enableSendBoxAutoCleanup, cleanSendBoxDays
-        } = data || {};
-        this.enableMailsAutoCleanup = enableMailsAutoCleanup;
-        this.cleanMailsDays = cleanMailsDays || 0;
-        this.enableUnknowMailsAutoCleanup = enableUnknowMailsAutoCleanup;
-        this.cleanUnknowMailsDays = cleanUnknowMailsDays || 0;
-        this.enableSendBoxAutoCleanup = enableSendBoxAutoCleanup;
-        this.cleanSendBoxDays = cleanSendBoxDays || 0;
-    }
+    enableAddressAutoCleanup: boolean | undefined;
+    cleanAddressDays: number;
+    enableInactiveAddressAutoCleanup: boolean | undefined;
+    cleanInactiveAddressDays: number;
+    enableUnboundAddressAutoCleanup: boolean | undefined;
+    cleanUnboundAddressDays: number;
+    enableEmptyAddressAutoCleanup: boolean | undefined;
+    cleanEmptyAddressDays: number;
 }
-
 
 export class GeoData {
 
@@ -156,3 +151,15 @@ export type UserOauth2Settings = {
     enableMailAllowList?: boolean | undefined;
     mailAllowList?: string[] | undefined;
 }
+
+export type EmailRuleSettings = {
+    blockReceiveUnknowAddressEmail: boolean;
+    emailForwardingList: SubdomainForwardAddressList[]
+}
+
+export type RoleConfig = {
+    maxAddressCount?: number;
+    // future configs can be added here
+}
+
+export type RoleAddressConfig = Record<string, RoleConfig>;
