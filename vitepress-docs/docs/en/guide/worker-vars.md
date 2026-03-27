@@ -33,7 +33,7 @@
 | `DEFAULT_DOMAINS`                     | JSON      | Default domains available to users (not logged in or users without assigned roles)                                                                                                                                | `["awsl.uk", "dreamhunter2333.xyz"]`      |
 | `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | Text/JSON | Whether to prioritize default domain when creating new addresses, if set to true, will use the first domain when no domain is specified, mainly for telegram bot scenarios                                        | `false`                                   |
 | `DOMAIN_LABELS`                       | JSON      | For Chinese domains, you can use DOMAIN_LABELS to display Chinese names                                                                                                                                           | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
-| `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies                                                                                                                                                                                     | `true`                                    |
+| `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
 | `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance, will be 0 if not set                                                                                                                                                               | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
 
@@ -100,15 +100,19 @@
 | `COPYRIGHT`                | Text        | Custom frontend footer text, supports html                               | `Dream Hunter`        |
 | `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
 | `DISABLE_SHOW_GITHUB`      | Text/JSON   | Whether to show GitHub link                                              | `true`                |
-| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
-| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
+| `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
+| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
+| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | Text/JSON | Enable global Turnstile CAPTCHA for all login forms (admin login, user login, address password login), requires Turnstile keys above | `true` |
 
 ## Telegram Bot Related Variables
 
-| Variable Name    | Type   | Description                                                                 | Example |
-| ---------------- | ------ | --------------------------------------------------------------------------- | ------- |
-| `TG_MAX_ADDRESS` | Number | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
-| `TG_BOT_INFO`    | Text   | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
+| Variable Name        | Type      | Description                                                                 | Example |
+| -------------------- | --------- | --------------------------------------------------------------------------- | ------- |
+| `TG_MAX_ADDRESS`     | Number    | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
+| `TG_BOT_INFO`        | Text      | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
+| `TG_ALLOW_USER_LANG` | Text/JSON | Allow users to switch language via `/lang` command, default `false`         | `true`  |
+| `ENABLE_TG_PUSH_ATTACHMENT` | Boolean | Enable sending email attachments via Telegram push, default `false`, 50MB per file limit | `true` |
 
 > [!NOTE]
 > Telegram functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout
@@ -116,6 +120,33 @@
 > If you want stronger email parsing capabilities
 >
 > Refer to [Configure worker to use wasm for email parsing](/en/guide/feature/mail_parser_wasm_worker)
+
+## Email Forwarding Related Variables
+
+| Variable Name                     | Type | Description                                                                              | Example   |
+| --------------------------------- | ---- | ---------------------------------------------------------------------------------------- | --------- |
+| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | Subdomain/rule forwarding configuration, supports filtering by domain and source regex  | See below |
+
+> [!NOTE] SUBDOMAIN_FORWARD_ADDRESS_LIST Configuration
+>
+> v1.2.0 added `sourcePatterns` and `sourceMatchMode` fields for filtering by sender address regex:
+>
+> - `domains`: Target domain list, matches all domains if empty
+> - `forward`: Forward destination address
+> - `sourcePatterns`: Source address regex list (optional)
+> - `sourceMatchMode`: Match mode, `any` (match any, default) or `all` (match all)
+>
+> Regex pattern max length is 200 characters to prevent ReDoS attacks
+>
+> ```toml
+> SUBDOMAIN_FORWARD_ADDRESS_LIST = """
+> [
+>     {"domains":[""],"forward":"xxx1@xxx.com"},
+>     {"domains":["subdomain-1.domain.com","subdomain-2.domain.com"],"forward":"xxx2@xxx.com"},
+>     {"domains":["example.com"],"forward":"admin@xxx.com","sourcePatterns":[".*@github.com",".*@gitlab.com"],"sourceMatchMode":"any"}
+> ]
+> """
+> ```
 
 ## Other Variables
 

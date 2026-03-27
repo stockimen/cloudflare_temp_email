@@ -2,7 +2,7 @@ import type {
     AuthenticatorTransportFuture,
     CredentialDeviceType,
     Base64URLString,
-} from '@simplewebauthn/types';
+} from '@simplewebauthn/server';
 
 export type Passkey = {
     id: Base64URLString;
@@ -99,11 +99,14 @@ export class UserSettings {
     enableMailAllowList: boolean | undefined;
     mailAllowList: string[] | undefined;
     maxAddressCount: number;
+    enableEmailCheckRegex: boolean | undefined;
+    emailCheckRegex: string | undefined;
 
     constructor(data: UserSettings | undefined | null) {
         const {
             enable, enableMailVerify, verifyMailSender,
-            enableMailAllowList, mailAllowList, maxAddressCount
+            enableMailAllowList, mailAllowList, maxAddressCount,
+            enableEmailCheckRegex, emailCheckRegex
         } = data || {};
         this.enable = enable;
         this.enableMailVerify = enableMailVerify;
@@ -111,6 +114,8 @@ export class UserSettings {
         this.enableMailAllowList = enableMailAllowList;
         this.mailAllowList = mailAllowList;
         this.maxAddressCount = maxAddressCount || 5;
+        this.enableEmailCheckRegex = enableEmailCheckRegex;
+        this.emailCheckRegex = emailCheckRegex;
     }
 }
 
@@ -146,6 +151,7 @@ export class WebhookSettings {
 
 export type UserOauth2Settings = {
     name: string;
+    icon?: string;                // SVG icon string for the provider
     clientID: string;
     clientSecret: string;
     authorizationURL: string;
@@ -155,6 +161,9 @@ export type UserOauth2Settings = {
     redirectURL: string;
     logoutURL?: string;
     userEmailKey: string;
+    enableEmailFormat?: boolean;  // Enable email format transformation
+    userEmailFormat?: string;     // Regex pattern to match email
+    userEmailReplace?: string;    // Replacement template using $1, $2, etc.
     scope: string;
     enableMailAllowList?: boolean | undefined;
     mailAllowList?: string[] | undefined;

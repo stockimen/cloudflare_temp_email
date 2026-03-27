@@ -3,10 +3,11 @@ import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled } from '@vicons/material'
+import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
+import { buildReplyModel, buildForwardModel } from '../utils/mail-actions'
 import MailContentRenderer from "./MailContentRenderer.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 
@@ -147,6 +148,7 @@ const { t } = useI18n({
       attachments: 'Show Attachments',
       downloadMail: 'Download Mail',
       pleaseSelectMail: "Please select mail",
+      emptyInbox: "Your inbox is empty",
       delete: 'Delete',
       deleteMailTip: 'Are you sure you want to delete mail?',
       reply: 'Reply',
@@ -171,6 +173,7 @@ const { t } = useI18n({
       downloadMail: '下载邮件',
       attachments: '查看附件',
       pleaseSelectMail: "请选择邮件",
+      emptyInbox: "收件箱为空",
       delete: '删除',
       deleteMailTip: '确定要删除邮件吗?',
       reply: '回复',
@@ -274,30 +277,12 @@ const deleteMail = async () => {
 };
 
 const replyMail = async () => {
-  const emailRegex = /(.+?) <(.+?)>/;
-  let toMail = curMail.value.originalSource;
-  let toName = ""
-  const match = emailRegex.exec(curMail.value.source);
-  if (match) {
-    toName = match[1];
-    toMail = match[2];
-  }
-  Object.assign(sendMailModel.value, {
-    toName: toName,
-    toMail: toMail,
-    subject: `${t('reply')}: ${curMail.value.subject}`,
-    contentType: 'rich',
-    content: curMail.value.text ? `<p><br></p><blockquote>${curMail.value.text}</blockquote><p><br></p>` : '',
-  });
+  Object.assign(sendMailModel.value, buildReplyModel(curMail.value, t('reply')));
   indexTab.value = 'sendmail';
 };
 
 const forwardMail = async () => {
-  Object.assign(sendMailModel.value, {
-    subject: `${t('forwardMail')}: ${curMail.value.subject}`,
-    contentType: curMail.value.message ? 'html' : 'text',
-    content: curMail.value.message || curMail.value.text,
-  });
+  Object.assign(sendMailModel.value, buildForwardModel(curMail.value, t('forwardMail')));
   indexTab.value = 'sendmail';
 };
 
@@ -446,7 +431,7 @@ onBeforeUnmount(() => {
       <n-split class="left" direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; min-height: 50vh; max-height: 100vh;">
+          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -506,7 +491,10 @@ onBeforeUnmount(() => {
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
-            <n-result status="info" :title="t('pleaseSelectMail')">
+            <n-result status="info" :title="count === 0 ? t('emptyInbox') : t('pleaseSelectMail')">
+              <template #icon>
+                <n-icon :component="InboxRound" :size="100" />
+              </template>
             </n-result>
           </n-card>
         </template>
@@ -531,7 +519,7 @@ onBeforeUnmount(() => {
         <n-input v-model:value="localFilterKeyword"
           :placeholder="t('keywordQueryTip')" size="small" clearable />
       </div>
-      <div style="overflow: auto; height: 80vh;">
+      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
         <n-list hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">

@@ -1,13 +1,45 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
+import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
+
+/**
+ * Check if send mail is enabled for a specific domain
+ */
+export const isSendMailEnabled = (
+    c: Context<HonoCustomType>,
+    mailDomain: string
+): boolean => {
+    // Check resend token for domain or global
+    const resendEnabled = c.env.RESEND_TOKEN || c.env[
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+    ];
+    if (resendEnabled) return true;
+
+    // Check SMTP config for domain
+    const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
+    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+
+    // Check SEND_MAIL binding
+    if (c.env.SEND_MAIL) return true;
+
+    return false;
+}
+
+/**
+ * Check if send mail is enabled for any configured domain
+ */
+export const isAnySendMailEnabled = (c: Context<HonoCustomType>): boolean => {
+    const domains = getDomains(c);
+    return domains.some(domain => isSendMailEnabled(c, domain));
+}
 
 export const generateRandomName = (c: Context<HonoCustomType>): string => {
     // name min length min 1
@@ -66,21 +98,23 @@ const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
     return DEFAULT_NAME_REGEX;
 }
 
-export async function updateAddressUpdatedAt(
+export function updateAddressUpdatedAt(
     c: Context<HonoCustomType>,
     address: string | undefined | null
-): Promise<void> {
+): void {
     if (!address) {
         return;
     }
-    // update address updated_at
-    try {
-        await c.env.DB.prepare(
-            `UPDATE address SET updated_at = datetime('now') where name = ?`
-        ).bind(address).run();
-    } catch (e) {
-        console.warn("Failed to update address updated_at", e);
-    }
+    // update address updated_at asynchronously
+    c.executionCtx.waitUntil((async () => {
+        try {
+            await c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now') where name = ?`
+            ).bind(address).run();
+        } catch (e) {
+            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+        }
+    })());
 }
 
 export const generateRandomPassword = (): string => {
@@ -134,7 +168,7 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
         sourceMeta?: string | undefined | null,
     }
-): Promise<{ address: string, jwt: string, password?: string | null }> => {
+): Promise<{ address: string, jwt: string, password?: string | null, address_id: number }> => {
     const msgs = i18n.getMessagesbyContext(c);
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
@@ -213,6 +247,10 @@ export const newAddress = async (
         `SELECT id FROM address where name = ?`
     ).bind(name).first<number>("id");
 
+    if (!address_id) {
+        throw new Error(msgs.FailedCreateAddressMsg);
+    }
+
     // 如果启用地址密码功能，自动生成密码
     const generatedPassword = await generatePasswordForAddress(c, name);
 
@@ -225,6 +263,7 @@ export const newAddress = async (
         jwt: jwt,
         address: name,
         password: generatedPassword,
+        address_id: address_id,
     }
 }
 
@@ -422,7 +461,8 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     subject: string,
     text: string,
     html: string,
-    headers?: Record<string, string>[]
+    headers?: Record<string, string>[],
+    attachments?: ParsedEmailAttachment[],
 } | undefined> => {
     // check parsed email context is valid
     if (!parsedEmailContext || !parsedEmailContext.rawEmail) {
@@ -433,7 +473,7 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
         return parsedEmailContext.parsedEmail;
     }
     const raw_mail = parsedEmailContext.rawEmail;
-    // TODO: WASM parse email
+    // NOTE: WASM parse email
     // try {
     //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 
@@ -446,6 +486,12 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     //             (header) => ({ key: header.key, value: header.value })
     //         ) || [],
     //         html: parsedEmail.body_html || "",
+    //         attachments: (parsedEmail.attachments || []).map(att => ({
+    //             filename: att.filename || "attachment",
+    //             mimeType: att.content_type || "application/octet-stream",
+    //             content: att.content,
+    //             disposition: "attachment",
+    //         })),
     //     };
     //     return parsedEmailContext.parsedEmail;
     // } catch (e) {
@@ -460,6 +506,12 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
             headers: parsedEmail.headers || [],
+            attachments: (parsedEmail.attachments || []).map(att => ({
+                filename: att.filename || "attachment",
+                mimeType: att.mimeType || "application/octet-stream",
+                content: new Uint8Array(att.content),
+                disposition: att.disposition || "attachment",
+            })),
         };
         return parsedEmailContext.parsedEmail;
     }
@@ -571,7 +623,7 @@ export async function triggerWebhook(
         subject: parsedEmail?.subject || "",
         raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
-        parsedHtml: parsedEmail?.html || ""
+        parsedHtml: parsedEmail?.html || "",
     }
     for (const settings of webhookList) {
         const res = await sendWebhook(settings, webhookMail);
