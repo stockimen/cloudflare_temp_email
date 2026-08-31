@@ -190,6 +190,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "markAsRead": {
+      "en": "Mark as Read",
+      "zh": "标为已读"
+    },
+    "markAsUnread": {
+      "en": "Mark as Unread",
+      "zh": "标为未读"
+    },
     "loadRemoteImages": {
       "en": "Load Images",
       "zh": "加载图片"
@@ -738,6 +746,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Bind Mail Address",
       "zh": "绑定邮箱地址"
     },
+    "send_mail": {
+      "en": "Send Mail",
+      "zh": "发送邮件"
+    },
     "user_mail_box_tab": {
       "en": "Mail Box",
       "zh": "收件箱"
@@ -745,6 +757,16 @@ export const MESSAGE_REGISTRY = {
     "user_settings": {
       "en": "User Settings",
       "zh": "用户设置"
+    }
+  },
+  "views.user.UserSendBox": {
+    "noAddress": {
+      "en": "Select a bound email address to continue",
+      "zh": "请选择一个已绑定的邮箱地址"
+    },
+    "sendbox": {
+      "en": "Sent",
+      "zh": "发件箱"
     }
   },
   "views.user.UserLogin": {
@@ -1183,6 +1205,10 @@ export const MESSAGE_REGISTRY = {
     "prevPage": {
       "en": "Previous",
       "zh": "上一页"
+    },
+    "readStatusUpdated": {
+      "en": "Read status updated",
+      "zh": "已读状态已更新"
     },
     "refreshAfter": {
       "en": "Refresh After {msg} Seconds",
@@ -2131,6 +2157,10 @@ export const MESSAGE_REGISTRY = {
     "fillInAllFields": {
       "en": "Please fill in all fields",
       "zh": "请填写完整信息"
+    },
+    "generateName": {
+      "en": "Generate Fake Name",
+      "zh": "生成随机名字"
     },
     "linkWithAddressCredential": {
       "en": "Open to auto login email link",
