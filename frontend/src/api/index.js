@@ -6,8 +6,9 @@ import i18n from '../i18n'
 import { getFingerprint } from '../utils/fingerprint'
 import { safeBearerHeader, safeHeaderValue } from '../utils/headers'
 import { sanitizeHtml } from '../utils/sanitize-html'
+import { APP_CONFIG } from '../config'
 
-const API_BASE = import.meta.env.VITE_API_BASE || "";
+const API_BASE = APP_CONFIG.API_BASE || "";
 const {
     loading, auth, jwt, settings, openSettings,
     userOpenSettings, userSettings, announcement,
@@ -110,6 +111,8 @@ const getOpenSettings = async (message, notification) => {
             showGithubForUser: res["showGithubForUser"] ?? openSettings.value.showGithubForUser,
             enableAddressPassword: res["enableAddressPassword"] || false,
             enableAgentEmailInfo: res["enableAgentEmailInfo"] || false,
+            enableRedeemCode: res["enableRedeemCode"] || false,
+            redeemCodeUrl: res["redeemCodeUrl"] || "",
             smtpImapProxyConfig: res["smtpImapProxyConfig"] || openSettings.value.smtpImapProxyConfig,
             statusUrl: res["statusUrl"] || "",
             enableGlobalTurnstileCheck: res["enableGlobalTurnstileCheck"] || false,
